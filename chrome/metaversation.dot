@@ -1,0 +1,12 @@
+digraph metaversation {
+node [label="", style=filled, shape=circle]
+a [fillcolor="#aa0022"]
+b [fillcolor="#0022dd"]
+c [fillcolor="#00ff00"]
+c->a [color="#880000"]
+b->a [color="#00ff00"]
+c->b [color="#00cccc"]
+bgcolor=transparent
+layout=fdp
+root=g
+}

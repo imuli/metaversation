@@ -1,0 +1,25 @@
+{
+	"name" : "Metaversation",
+	"version" : "0",
+	"description" : "Annotate and link webpages",
+	"background" : { "scripts": ["background.js"] },
+	"permissions" : [
+		"storage",
+		"contextMenus",
+		"tabs",
+		"activeTab",
+		"<all_urls>"
+	],
+	"minimum_chrome_version" : "6.0.0.0",
+	"icons" : {
+		"128" : "metaversation.png"
+	},
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"css": ["metaversation.css"],
+			"js": ["content.js"]
+		}
+	],
+	"manifest_version": 2
+}
