@@ -52,7 +52,7 @@ function getChildN(node){
 }
 
 function getNodeAddress(node){
-	if(node.nodeName == "body")
+	if(node.nodeName == "BODY")
 		return "body";
 	if(node.nodeName == "#text" || node.id == ""){
 		return getNodeAddress(node.parentNode) + ">" + node.nodeName + ":nth-child(" + getChildN(node) + ")";
@@ -124,9 +124,14 @@ function openLinkDialog(info){
 	div.style.top = '1em';
 	div.style.left = '1em';
 	div.firstChild.addEventListener('submit', function(event){
-		for(var i = 0; i < this.to.length; i++){
-			if(this.to[i].checked == false) continue;
-			addLink(this.relationship.value, info.from, this.to[i].value);
+		if(this.hasOwnProperty('to')){ /* if there's more than zero */
+			if(this.to.checked){ /* if there's only one */
+				addLink(this.relationship.value, info.from, this.to.value);
+			}
+			for(var i = 0; i < this.to.length; i++){
+				if(this.to[i].checked == false) continue;
+				addLink(this.relationship.value, info.from, this.to[i].value);
+			}
 		}
 		document.body.removeChild(div);
 		event.preventDefault();
@@ -154,10 +159,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 
 function updateHighlights(){
 	chrome.storage.local.get(null, function(items){
+		var url = document.location.href.split('#')[0];
 		Object.keys(items).map(function(key){
 			return items[key];
 		}).filter(function(item){
-			return item.url == document.location;
+			return item.url == url;
 		}).map(function(item){
 			if(document.getElementById(item.id) == undefined){
 				highlight(item);

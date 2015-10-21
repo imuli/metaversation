@@ -9,7 +9,7 @@ function addBySelection(info, tab){
 		type: "getCurrentSelection",
 		info: {
 			type: 'node',
-			url: info.pageUrl,
+			url: info.pageUrl.split('#')[0],
 			text: info.selectionText,
 			title: tab.title,
 			icon: tab.favIconUrl,
