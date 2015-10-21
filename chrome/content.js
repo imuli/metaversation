@@ -18,25 +18,34 @@ function mouseEvents(event){
 		},
 	});
 }
+function highlightRect(rect, model){
+	var body = document.body.getBoundingClientRect();
+	var node = model.cloneNode();
+	node.style.position = "absolute";
+	node.style.top = rect.top - body.top + "px";
+	node.style.left = rect.left - body.left + "px";
+	node.style.height = rect.height + "px";
+	node.style.width = rect.width + "px";
+	node.style.mixBlendMode = "darken";
+	node.style.zIndex = "1";
+	return node;
+}
 function highlight(item){
 	var range = document.createRange();
 	range.setStart(getNodeByAddress(item.baseNode), item.baseOffset);
 	range.setEnd(getNodeByAddress(item.extentNode), item.extentOffset);
-	var node = document.createElement("a");
+	var node = document.createElement("div");
 	node.id = item.id;
 	node.className="metaversation";
-	node.href = "metaversation:" + item.id;
-	node.style.position = "absolute";
-	node.style.background = "yellow";
-	node.style.mixBlendMode = "darken";
-	node.style.zIndex = "1";
+	var model = document.createElement("a");
+	model.className="metaversation";
+	model.href = "metaversation:" + item.id;
+	model.style.background = "yellow";
+	var rects = range.getClientRects();
+	for(var i in rects){
+		node.appendChild(highlightRect(rects[i], model));
+	}
 	document.body.appendChild(node);
-	node.style.top = range.getBoundingClientRect().top - document.body.getBoundingClientRect().top + "px";
-	node.style.left = range.getBoundingClientRect().left - document.body.getBoundingClientRect().left + "px";
-	node.style.height = range.getBoundingClientRect().height + "px";
-	node.style.width = range.getBoundingClientRect().width + "px";
-	node.onmouseenter = mouseEvents;
-	node.onmouseleave = mouseEvents;
 }
 function unHighlight(node){
 	document.body.removeChild(node);
@@ -163,14 +172,14 @@ function updateHighlights(){
 		Object.keys(items).map(function(key){
 			return items[key];
 		}).filter(function(item){
-			return item.url == url;
+			return item.type == 'node' && item.url == url;
 		}).map(function(item){
 			if(document.getElementById(item.id) == undefined){
 				highlight(item);
 			}
 			return item;
 		});
-		var highlighted = document.querySelectorAll(".metaversation");
+		var highlighted = document.querySelectorAll("div.metaversation");
 		for(var i = 0; i < highlighted.length; i++){
 			if(items[highlighted[i].id] == undefined){
 				unHighlight(highlighted[i]);
