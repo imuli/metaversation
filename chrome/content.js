@@ -22,19 +22,23 @@ function highlight(item){
 	var range = document.createRange();
 	range.setStart(getNodeByAddress(item.baseNode), item.baseOffset);
 	range.setEnd(getNodeByAddress(item.extentNode), item.extentOffset);
-	var node = document.createElement("span");
-	node.style.background = "yellow";
+	var node = document.createElement("div");
 	node.id = item.id;
-	node.src = "https://metaversation.org/" + item.id;
 	node.className="metaversation";
+	node.style.position = "absolute";
+	node.style.background = "yellow";
+	node.style.mixBlendMode = "darken";
+	node.style.zIndex = "1";
+	document.body.appendChild(node);
+	node.style.top = range.getBoundingClientRect().top - document.body.getBoundingClientRect().top + "px";
+	node.style.left = range.getBoundingClientRect().left - document.body.getBoundingClientRect().left + "px";
+	node.style.height = range.getBoundingClientRect().height + "px";
+	node.style.width = range.getBoundingClientRect().width + "px";
 	node.onmouseenter = mouseEvents;
 	node.onmouseleave = mouseEvents;
-	node.originalParent = range.commonAncestorContainer.cloneNode(true);
-	range.surroundContents(node);
 }
 function unHighlight(node){
-	var p = node.parentNode;
-	p.parentNode.replaceChild(node.originalParent, p);
+	document.body.removeChild(node);
 }
 
 function getChildN(node){
@@ -56,11 +60,11 @@ function getNodeAddress(node){
 }
 
 function getCurrentSelection(info){
-	var select = window.getSelection();
-	info.baseNode = getNodeAddress(select.baseNode);
-	info.baseOffset = select.baseOffset;
-	info.extentNode = getNodeAddress(select.extentNode); 
-	info.extentOffset = select.extentOffset;
+	var select = window.getSelection().getRangeAt(0);
+	info.baseNode = getNodeAddress(select.startContainer);
+	info.baseOffset = select.startOffset;
+	info.extentNode = getNodeAddress(select.endContainer); 
+	info.extentOffset = select.endOffset;
 	return info;
 }
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){

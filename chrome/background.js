@@ -13,6 +13,7 @@ function addBySelection(info, tab){
 			text: info.selectionText,
 			title: tab.title,
 			icon: tab.favIconUrl,
+			time: new Date().getTime();
 		},
 	}, function(resp){
 		var objs = {};
