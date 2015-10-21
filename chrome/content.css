@@ -1,0 +1,9 @@
+.metaversation-linkbox {
+	position: fixed;
+	background: white;
+	border: 1px solid black;
+	z-index: 80;
+}
+.metaversation-linkbox > form > * {
+	display: block;
+}

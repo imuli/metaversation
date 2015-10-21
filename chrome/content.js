@@ -22,9 +22,10 @@ function highlight(item){
 	var range = document.createRange();
 	range.setStart(getNodeByAddress(item.baseNode), item.baseOffset);
 	range.setEnd(getNodeByAddress(item.extentNode), item.extentOffset);
-	var node = document.createElement("div");
+	var node = document.createElement("a");
 	node.id = item.id;
 	node.className="metaversation";
+	node.href = "metaversation:" + item.id;
 	node.style.position = "absolute";
 	node.style.background = "yellow";
 	node.style.mixBlendMode = "darken";
@@ -67,6 +68,73 @@ function getCurrentSelection(info){
 	info.extentOffset = select.endOffset;
 	return info;
 }
+
+function createDOMTree(tree){
+	switch(Object.prototype.toString.call(tree)){
+		case "[object Array]":
+			var tag = document.createElement(tree[0]);
+			Object.keys(tree[1]).map(function(attr){
+				tag[attr] = tree[1][attr];
+			});
+			tree.slice(2).map(function(it){
+				tag.appendChild(createDOMTree(it));
+			});
+			return tag;
+			break;
+		case "[object String]":
+		default:
+			return document.createTextNode(tree);
+	}
+}
+
+function shortNodeView(node, length){
+	if(length == undefined) length = 40;
+	return ['a', {href: node.url, title: node.text}, node.text.slice(0,length) + (node.text.length > length ? "…" : "")];
+}
+
+function openLinkDialog(info){
+
+	function addLink(relationship, from, to){
+		chrome.runtime.sendMessage({
+			type: "addObject",
+			info: {
+				type: 'link',
+				relationship: relationship,
+				from: from,
+				to: to,
+			},
+		});
+	};
+
+	chrome.storage.local.get(null, function(items){
+	var entries = Object.keys(items).map(function(key){
+		return items[key];
+	}).filter(function(item){
+		return item.type == "node" && item.id != info.from;
+	}).map(function(item){
+		return ['label', {},
+			['input', {type: 'checkbox', name: 'to', value: item.id}],
+			shortNodeView(item),
+		];
+	});
+	var div = createDOMTree(['div', {className: 'metaversation-linkbox'}, ['form', {},
+		shortNodeView(items[info.from]),
+		['input', {type: 'text', name: 'relationship', placeholder: 'relates to'}],
+	].concat(entries).concat([['input', {type:'submit', value:'Link'}]])]);
+	div.style.top = '1em';
+	div.style.left = '1em';
+	div.firstChild.addEventListener('submit', function(event){
+		for(var i = 0; i < this.to.length; i++){
+			if(this.to[i].checked == false) continue;
+			addLink(this.relationship.value, info.from, this.to[i].value);
+		}
+		document.body.removeChild(div);
+		event.preventDefault();
+		return false;
+	});
+	document.body.appendChild(div);
+	});
+}
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 	switch(request.type){
 		case "getCurrentSelection":
@@ -74,6 +142,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 			break;
 		case "updateHighlights":
 			updateHighlights();
+			break;
+		case "openLinkDialog":
+			openLinkDialog(request.info);
 			break;
 		default:
 			console.log("Unknown request:", request, sender);

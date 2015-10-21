@@ -21,17 +21,34 @@ function addBySelection(info, tab){
 		objs[resp.id] = resp;
 		chrome.storage.local.set(objs);
 		console.log(objs);
+		chrome.tabs.sendMessage(tab.id, {
+			type: "updateHighlights",
+		});
 	});
+}
+function addObject(info){
+	var objs = {};
+	info.id = unique();
+	info.time = new Date().getTime(),
+	objs[info.id] = info;
+	console.log(info);
+	chrome.storage.local.set(objs);
+}
+
+function removeThis(info, tab){
+	var id = info.linkUrl.split(':')[1];
+	chrome.storage.local.remove(id);
 	chrome.tabs.sendMessage(tab.id, {
 		type: "updateHighlights",
 	});
 }
-
-var overId;
-function removeThis(info, tab){
-	chrome.storage.local.remove(overId);
+function linkThis(info, tab){
+	var id = info.linkUrl.split(':')[1];
 	chrome.tabs.sendMessage(tab.id, {
-		type: "updateHighlights",
+		type: "openLinkDialog",
+		info: {
+			from: id,
+		},
 	});
 }
 
@@ -45,13 +62,23 @@ var menus = {
 		onclick: addBySelection,
 	},
 	/* remove context menu at cursor */
+	link: {
+		id: "link",
+		title: "Link",
+		type: "normal",
+		contexts: ["link"],
+		targetUrlPatterns: ["metaversation:*"],
+		onclick: linkThis,
+	},
+	/* remove context menu at cursor */
 	remove: {
 		id: "remove",
 		title: "Remove",
 		type: "normal",
-		contexts: ["all"],
+		contexts: ["link"],
+		targetUrlPatterns: ["metaversation:*"],
 		onclick: removeThis,
-	}
+	},
 };
 
 function copy(obj){
@@ -62,21 +89,23 @@ function copy(obj){
 	return r;
 }
 
-chrome.contextMenus.create(copy(menus.add));
+chrome.contextMenus.create(menus.add);
+//chrome.contextMenus.create(menus.remove);
+chrome.contextMenus.create(menus.link);
 
 function toggleMenu(event){
 	if(event.type == 'mouseenter'){
-		chrome.contextMenus.create(copy(menus.remove));
-		chrome.contextMenus.remove('add');
-		overId = event.target.id;
 	} else {
-		chrome.contextMenus.create(copy(menus.add));
-		chrome.contextMenus.remove('remove');
+//		chrome.contextMenus.remove('remove');
+//		chrome.contextMenus.remove('link');
 	}
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 	switch(request.type){
+		case "addObject":
+			addObject(request.info);
+			break;
 		case "menu":
 			toggleMenu(request.event);
 			break;
