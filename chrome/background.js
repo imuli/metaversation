@@ -36,14 +36,14 @@ function addObject(info){
 }
 
 function removeThis(info, tab){
-	var id = info.linkUrl.split(':')[1];
+	var id = info.linkUrl.split('?')[1];
 	chrome.storage.local.remove(id);
 	chrome.tabs.sendMessage(tab.id, {
 		type: "updateHighlights",
 	});
 }
 function linkThis(info, tab){
-	var id = info.linkUrl.split(':')[1];
+	var id = info.linkUrl.split('?')[1];
 	chrome.tabs.sendMessage(tab.id, {
 		type: "openLinkDialog",
 		info: {
@@ -67,7 +67,7 @@ var menus = {
 		title: "Link",
 		type: "normal",
 		contexts: ["link"],
-		targetUrlPatterns: ["metaversation:*"],
+		targetUrlPatterns: ["chrome-extension://" + chrome.runtime.id + "/*"],
 		onclick: linkThis,
 	},
 	/* remove context menu at cursor */
@@ -76,7 +76,7 @@ var menus = {
 		title: "Remove",
 		type: "normal",
 		contexts: ["link"],
-		targetUrlPatterns: ["metaversation:*"],
+		targetUrlPatterns: ["chrome-extension://" + chrome.runtime.id + "/*"],
 		onclick: removeThis,
 	},
 };

@@ -10,6 +10,9 @@
 		"activeTab",
 		"<all_urls>"
 	],
+	"web_accessible_resources": [
+		"view.html"
+	],
 	"minimum_chrome_version" : "6.0.0.0",
 	"icons" : {
 		"128" : "metaversation.png"

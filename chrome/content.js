@@ -39,7 +39,8 @@ function highlight(item){
 	node.className="metaversation";
 	var model = document.createElement("a");
 	model.className="metaversation";
-	model.href = "metaversation:" + item.id;
+	model.href = "chrome-extension://" + chrome.runtime.id + "/view.html?" + item.id;
+	model.target = "_blank";
 	model.style.background = "yellow";
 	var rects = range.getClientRects();
 	for(var i in rects){
