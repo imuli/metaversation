@@ -25,6 +25,8 @@ function makeLinkList(id, items, type){
 		return items[key];
 	}).filter(function(item){
 		return item.type == 'link' && item[type] == id;
+	}).sort(function(a,b){
+		return a.relationship.localeCompare(b.relationship);
 	}).map(function(item){
 		var altItem = items[item[alt]];
 		return ['li', {style: {listStyleImage: "url('" + altItem.icon + "')"}}, shortNodeView(altItem)];
