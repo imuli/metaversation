@@ -18,6 +18,30 @@ function mouseEvents(event){
 		},
 	});
 }
+function makeLinkList(id, items, type){
+	var r = [];
+	var alt = type == 'to' ? 'from' : 'to';
+	return ['ul', {}].concat(Object.keys(items).map(function(key){
+		return items[key];
+	}).filter(function(item){
+		return item.type == 'link' && item[type] == id;
+	}).map(function(item){
+		var altItem = items[item[alt]];
+		return ['li', {style: {listStyleImage: "url('" + altItem.icon + "')"}}, shortNodeView(altItem)];
+	}));
+}
+function clickHighlight(event){
+	chrome.storage.local.get(null, function(items){
+		var id = event.target.parentNode.id;
+		document.body.appendChild(createDOMTree(['div', {className: 'metaversation-links-to'},
+				makeLinkList(id, items, 'to'),
+		]));
+		document.body.appendChild(createDOMTree(['div', {className: 'metaversation-links-from'},
+				makeLinkList(id, items, 'from'),
+		]));
+	});
+	event.preventDefault();
+}
 function highlightRect(rect, model){
 	var body = document.body.getBoundingClientRect();
 	var node = model.cloneNode();
@@ -44,7 +68,9 @@ function highlight(item){
 	model.style.background = "yellow";
 	var rects = range.getClientRects();
 	for(var i in rects){
-		node.appendChild(highlightRect(rects[i], model));
+		var child = highlightRect(rects[i], model);
+		node.appendChild(child);
+		child.addEventListener('click', clickHighlight);
 	}
 	document.body.appendChild(node);
 }
@@ -79,13 +105,23 @@ function getCurrentSelection(info){
 	return info;
 }
 
+function setAttrs(tag, attrs){
+	Object.keys(attrs).map(function(attr){
+		switch(Object.prototype.toString.call(attrs[attr])){
+			case "[object String]":
+				tag[attr] = attrs[attr];
+				break;
+			case "[object Object]":
+				setAttrs(tag[attr], attrs[attr]);
+				break;
+		}
+	});
+}
 function createDOMTree(tree){
 	switch(Object.prototype.toString.call(tree)){
 		case "[object Array]":
 			var tag = document.createElement(tree[0]);
-			Object.keys(tree[1]).map(function(attr){
-				tag[attr] = tree[1][attr];
-			});
+			setAttrs(tag, tree[1]);
 			tree.slice(2).map(function(it){
 				tag.appendChild(createDOMTree(it));
 			});
@@ -127,12 +163,10 @@ function openLinkDialog(info){
 			shortNodeView(item),
 		];
 	});
-	var div = createDOMTree(['div', {className: 'metaversation-linkbox'}, ['form', {},
+	var div = createDOMTree(['div', {className: 'metaversation-linkbox', style: {top: '1em', left: '1em'}}, ['form', {},
 		shortNodeView(items[info.from]),
 		['input', {type: 'text', name: 'relationship', placeholder: 'relates to'}],
 	].concat(entries).concat([['input', {type:'submit', value:'Link'}]])]);
-	div.style.top = '1em';
-	div.style.left = '1em';
 	div.firstChild.addEventListener('submit', function(event){
 		if(this.hasOwnProperty('to')){ /* if there's more than zero */
 			if(this.to.checked){ /* if there's only one */
